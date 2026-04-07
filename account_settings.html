@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block title %}個人設定 - LMS{% endblock %}
+
+{% block extra_css %}
+.settings-container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.settings-card {
+    background: var(--card);
+    border: 1px solid var(--sidebar-border);
+    border-radius: 8px;
+    padding: 24px 30px;
+}
+
+h3.card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #eee;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    align-items: center;
+    gap: 20px 30px;
+}
+
+.info-grid dt {
+    font-weight: 500;
+    color: #555;
+    text-align: right;
+}
+
+.info-grid dd {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.avatar-preview {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #eee;
+}
+
+/* Custom Upload Button */
+.upload-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+}
+
+.btn-upload {
+    background: #009688;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    border: none;
+    font-weight: 500;
+}
+
+.upload-wrapper input[type=file] {
+    font-size: 100px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.form-control {
+    width: 100%;
+    max-width: 350px;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.btn-save {
+    background: var(--brand);
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 15px;
+    margin-top: 10px;
+    transition: background 0.2s;
+}
+.btn-save:hover { background: #0d63d4; }
+
+.form-actions {
+    grid-column: 2 / -1;
+    padding-top: 10px;
+}
+
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+
+    <!-- 基本資訊 -->
+    <div class="settings-card">
+        <h3 class="card-title">基本資訊</h3>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <dl class="info-grid">
+                <dt>姓名</dt>
+                <dd>{{ user.get_full_name|default:user.username }}</dd>
+
+                <dt>{{ profile_form.avatar.label }}</dt>
+                <dd>
+                    {% if profile.avatar %}
+                        <img src="{{ profile.avatar.url }}" alt="Avatar" class="avatar-preview">
+                    {% else %}
+                        <div class="avatar-preview" style="background: #e9ecef; display: flex; align-items: center; justify-content: center; color: #aaa;">無頭像</div>
+                    {% endif %}
+                    <div class="upload-wrapper">
+                        <button type="button" class="btn-upload">上傳頭像</button>
+                        {{ profile_form.avatar }}
+                    </div>
+                </dd>
+
+                <dt>平台角色</dt>
+                <dd>{% if profile.is_teacher %}教師{% else %}學生{% endif %}</dd>
+
+                <dt>帳號</dt>
+                <dd>{{ user.username }}</dd>
+
+                <dt>{{ profile_form.department.label }}</dt>
+                <dd>{{ profile_form.department }}</dd>
+            </dl>
+            <div class="form-actions info-grid">
+                 <button type="submit" name="update_profile" class="btn-save">儲存基本資料</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 密碼設定 -->
+    <div class="settings-card">
+        <h3 class="card-title">密碼設定</h3>
+        <form method="post">
+            {% csrf_token %}
+            <dl class="info-grid">
+                {% for field in password_form %}
+                    <dt><label for="{{ field.id_for_label }}">{{ field.label }}</label></dt>
+                    <dd>
+                        {{ field }}
+                        {% for error in field.errors %}
+                            <div class="error-text" style="color: var(--error); font-size: 13px;">{{ error }}</div>
+                        {% endfor %}
+                    </dd>
+                {% endfor %}
+            </dl>
+            <div class="form-actions info-grid">
+                <button type="submit" name="change_password" class="btn-save">更新密碼</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+<script>
+// Add a class to the form inputs for styling
+document.addEventListener('DOMContentLoaded', function() {
+    const profileForm = document.querySelector('form[enctype="multipart/form-data"]');
+    profileForm.querySelector('#id_department').classList.add('form-control');
+
+    const passwordForm = document.querySelectorAll('form')[1];
+    passwordForm.querySelectorAll('input[type=password]').forEach(input => {
+        input.classList.add('form-control');
+    });
+});
+</script>
+
+{% endblock %}
